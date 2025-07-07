@@ -1,25 +1,40 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import type { NextFn } from '@adonisjs/core/types/http'
-import type { Authenticators } from '@adonisjs/auth/types'
 
-/**
- * Auth middleware is used authenticate HTTP requests and deny
- * access to unauthenticated users.
- */
 export default class AuthMiddleware {
-  /**
-   * The URL to redirect to, when authentication fails
-   */
-  redirectTo = '/login'
+  async handle(ctx: HttpContext, next: NextFn) {
+    const authHeader = ctx.request.header('authorization')
 
-  async handle(
-    ctx: HttpContext,
-    next: NextFn,
-    options: {
-      guards?: (keyof Authenticators)[]
-    } = {}
-  ) {
-    await ctx.auth.authenticateUsing(options.guards, { loginRoute: this.redirectTo })
-    return next()
+    if (!authHeader) {
+      ctx.response.status(401)
+      ctx.response.header('content-type', 'application/json')
+
+      const errorResponse = {
+        success: false,
+        error: 'No authorization',
+        message: 'Token missing or invalid',
+      }
+
+      ctx.response.send(JSON.stringify(errorResponse))
+      return
+    }
+
+    try {
+      await ctx.auth.authenticateUsing(['api'])
+      await next()
+    } catch (error) {
+      ctx.response.status(401)
+      ctx.response.header('content-type', 'application/json')
+
+      const errorResponse = {
+        success: false,
+        error: 'No authorization',
+        message: 'Token missing or invalid',
+        debug: error.message,
+      }
+      ctx.response.send(JSON.stringify(errorResponse))
+
+      return
+    }
   }
 }
