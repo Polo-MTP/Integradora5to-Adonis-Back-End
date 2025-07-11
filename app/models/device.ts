@@ -8,7 +8,7 @@ export default class Device extends BaseModel {
   declare id: number
 
   @column()
-  declare tank_id: number
+  declare tankId: number
 
   @belongsTo(() => Tank)
   declare tank: BelongsTo<typeof Tank>

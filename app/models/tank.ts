@@ -18,6 +18,9 @@ export default class Tank extends BaseModel {
   declare description: string
 
   @column()
+  declare uuid: string
+
+  @column()
   declare user_id: number
 
   @belongsTo(() => User)
