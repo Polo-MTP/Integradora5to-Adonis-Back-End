@@ -2,6 +2,8 @@ import Tank from '#models/tank'
 import { Tankvalidator } from '#validators/tank'
 import type { HttpContext } from '@adonisjs/core/http'
 
+
+
 export default class TanksController {
   async create({ request, response, auth }: HttpContext) {
     try {
@@ -27,7 +29,6 @@ export default class TanksController {
     }
   }
 
-  // Obtener todos los tanques del usuario autenticado
   async index({ response, auth }: HttpContext) {
     try {
       const user = await auth.authenticate()
@@ -76,7 +77,6 @@ export default class TanksController {
     }
   }
 
-  // Actualizar un tanque
   async update({ params, request, response, auth }: HttpContext) {
     try {
       const user = await auth.authenticate()

@@ -7,10 +7,9 @@ export default class AuthController {
     try {
       const payload = await request.validateUsing(registerValidator)
       
-      // Asignar rol por defecto si no se proporciona
       const userData = {
         ...payload,
-        rol: payload.rol || 'user'
+        rol: 'cliente',
       }
 
       const user = await User.create(userData)

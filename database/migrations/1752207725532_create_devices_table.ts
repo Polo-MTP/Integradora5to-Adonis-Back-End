@@ -8,9 +8,8 @@ export default class extends BaseSchema {
       table.increments('id')
       table.integer('tank_id').unsigned().references('id').inTable('tanks').onDelete('CASCADE')
       table.string('name')
-
-      table.timestamp('created_at')
-      table.timestamp('updated_at')
+      table.timestamp('created_at').nullable()
+      table.timestamp('updated_at').nullable()
     })
   }
 

@@ -22,10 +22,12 @@ router
   .group(() => {
     router.post('/logout', [authController, 'logout'])
     router.get('/me', [authController, 'me'])
-
-    // Rutas de Tank
-
-    // Ruta legacy para compatibilidad
-    router.post('/newTank', [TanksController, 'create'])
   })
   .use(middleware.auth())
+  
+
+
+router.group(() => {
+  router.get('/tanks', [TanksController, 'index'])
+  router.post('/tanks', [TanksController, 'create'])
+}).use(middleware.auth())
