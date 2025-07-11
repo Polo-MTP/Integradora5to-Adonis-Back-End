@@ -34,6 +34,37 @@ export default class AuthController {
     }
   }
 
+  async registerAdmin({ request, response }: HttpContext) {
+    try {
+      const payload = await request.validateUsing(registerValidator)
+
+      const userData = {
+        ...payload,
+        rol: 'admin',
+      }
+
+      const user = await User.create(userData)
+
+      const token = await User.accessTokens.create(user)
+
+      return response.status(201).json({
+        message: 'administrador registrado exitosamente',
+        user: {
+          id: user.id,
+          email: user.email,
+          fullName: user.fullName,
+          rol: user.rol,
+        },
+        token: token.value!.release(),
+      })
+    } catch (error) {
+      return response.status(400).json({
+        message: 'Error al registrar administrador',
+        errors: error.messages || error.message,
+      })
+    }
+  }
+
   async login({ request, response }: HttpContext) {
     try {
       const { email, password } = await request.validateUsing(loginValidator)

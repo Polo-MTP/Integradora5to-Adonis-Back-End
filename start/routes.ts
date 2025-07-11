@@ -11,20 +11,20 @@ router.get('/', async () => {
   }
 })
 
-router
-  .group(() => {
-    router.post('/register', [authController, 'register'])
-    router.post('/login', [authController, 'login'])
-  })
-  .prefix('/auth')
+router.group(() => {
+  router.post('/register', [authController, 'register'])
+  router.post('/login', [authController, 'login'])
+}).prefix('/auth')
 
-router
-  .group(() => {
+router.group(() => {
+  router.post('/register', [authController, 'registerAdmin']).use(middleware.onlyAdmin())
+}).prefix('/admin').use(middleware.auth())
+
+
+router.group(() => {
     router.post('/logout', [authController, 'logout'])
     router.get('/me', [authController, 'me'])
-  })
-  .use(middleware.auth())
-  
+}).use(middleware.auth())
 
 
 router.group(() => {

@@ -8,23 +8,28 @@ export default class TanksController {
   async create({ request, response, auth }: HttpContext) {
     try {
       const user = await auth.authenticate()
-      const data = await request.validateUsing(Tankvalidator)
+      const payload = await request.validateUsing(Tankvalidator)
+
+      console.log('Payload:', payload)
 
       const tank = await Tank.create({
-        ...data,
+        name: payload.name,
+        description: payload.description,
         user_id: user.id,
       })
+      
 
-      return response.status(201).json({
+      return response.json({
         success: true,
         data: tank,
         message: 'Tanque creado exitosamente',
       })
+
     } catch (error) {
       return response.status(400).json({
         success: false,
         message: 'Error al crear el tanque',
-        error: error.message,
+        errors: error.messages || error.message,
       })
     }
   }
