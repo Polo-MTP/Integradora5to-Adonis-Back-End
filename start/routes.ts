@@ -34,3 +34,5 @@ router.group(() => {
   router.get('/tanks', [TanksController, 'index'])
   router.post('/tanks', [TanksController, 'create'])
 }).use(middleware.auth())
+
+router.post('/getdevices', [RaspberriesController, 'index'])
