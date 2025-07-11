@@ -2,6 +2,7 @@ import { middleware } from './kernel.js'
 
 const authController = () => import('../app/controllers/auth_controller.js')
 const TanksController = () => import('../app/controllers/tanks_controller.js')
+const RaspberriesController = () => import('../app/controllers/raspberries_controller.js')
 
 import router from '@adonisjs/core/services/router'
 
@@ -24,7 +25,9 @@ router.group(() => {
 router.group(() => {
     router.post('/logout', [authController, 'logout'])
     router.get('/me', [authController, 'me'])
-}).use(middleware.auth())
+  })
+  .use(middleware.auth())
+  
 
 
 router.group(() => {
