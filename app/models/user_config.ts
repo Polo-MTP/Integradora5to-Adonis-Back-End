@@ -14,6 +14,9 @@ export default class UserConfig extends BaseModel {
   declare config_name: string
 
   @column()
+  declare code: string
+
+  @column()
   declare config_value: DateTime
 
   @column()

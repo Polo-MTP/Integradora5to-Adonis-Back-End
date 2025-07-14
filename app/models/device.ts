@@ -16,6 +16,9 @@ export default class Device extends BaseModel {
   @column()
   declare name: string
 
+  @column()
+  declare code: string
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
