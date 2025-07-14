@@ -1,8 +1,8 @@
 import Tank from '#models/tank'
+import UserConfig from '#models/user_config'
 import { Tankvalidator } from '#validators/tank'
 import type { HttpContext } from '@adonisjs/core/http'
-
-
+import { DateTime } from 'luxon'
 
 export default class TanksController {
   async create({ request, response, auth }: HttpContext) {
@@ -17,14 +17,12 @@ export default class TanksController {
         description: payload.description,
         user_id: user.id,
       })
-      
 
       return response.json({
         success: true,
         data: tank,
         message: 'Tanque creado exitosamente',
       })
-
     } catch (error) {
       return response.status(400).json({
         success: false,
@@ -113,4 +111,38 @@ export default class TanksController {
     }
   }
 
+  async addConfig({ params, request, response, auth }: HttpContext) {
+    try {
+      const user = await auth.authenticate()
+
+      const tank = await Tank.query().where('id', params.id).where('user_id', user.id).first()
+
+      if (!tank) {
+        return response.status(404).json({
+          success: false,
+          message: 'Tanque no encontrado',
+        })
+      }
+
+      const config_name = request.input('config_name')
+      const config_value = request.input('config_value')
+
+      await UserConfig.create({
+        config_name,
+        config_value,
+        user_id: user.id,
+      })
+
+      return response.json({
+        success: true,
+        message: 'Configuración registrada exitosamente',
+      })
+    } catch (error) {
+      return response.status(400).json({
+        success: false,
+        message: 'Error al registrar la configuración',
+        error: error.message,
+      })
+    }
+  }
 }
