@@ -1,15 +1,34 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import User from '#models/user'
 import { registerValidator, loginValidator } from '#validators/auth'
+import CloudinaryService from '#services/cloudinary_service'
 
 export default class AuthController {
   async register({ request, response }: HttpContext) {
     try {
       const payload = await request.validateUsing(registerValidator)
-      
+
+      let profileImageData = null
+
+      if (payload.profileImage) {
+        try {
+          profileImageData = await CloudinaryService.uploadImage(
+            payload.profileImage,
+            'profile_pictures'
+          )
+        } catch (imageError) {
+          return response.status(400).json({
+            message: 'Error al subir imagen',
+            errors: imageError.message,
+          })
+        }
+      }
+
       const userData = {
         ...payload,
         rol: 'cliente',
+        profileImage: profileImageData?.url,
+        profileImageId: profileImageData?.publicId,
       }
 
       const user = await User.create(userData)
@@ -23,6 +42,7 @@ export default class AuthController {
           email: user.email,
           fullName: user.fullName,
           rol: user.rol,
+          profileImage: user.profileImage,
         },
         token: token.value!.release(),
       })
@@ -38,13 +58,31 @@ export default class AuthController {
     try {
       const payload = await request.validateUsing(registerValidator)
 
+      let profileImageData = null
+
+      if (payload.profileImage) {
+        try {
+          profileImageData = await CloudinaryService.uploadImage(
+            payload.profileImage,
+            'profile_pictures'
+          )
+        } catch (imageError) {
+          return response.status(400).json({
+            message: 'Error al subir imagen',
+            errors: imageError.message,
+          })
+        }
+      }
+
       const userData = {
         ...payload,
         rol: 'admin',
+        profileImage: profileImageData?.url,
+        profileImageId: profileImageData?.publicId,
       }
 
-      const user = await User.create(userData)
 
+      const user = await User.create(userData)
       const token = await User.accessTokens.create(user)
 
       return response.status(201).json({
@@ -54,6 +92,7 @@ export default class AuthController {
           email: user.email,
           fullName: user.fullName,
           rol: user.rol,
+          profileImage: user.profileImage,
         },
         token: token.value!.release(),
       })
@@ -79,6 +118,8 @@ export default class AuthController {
           id: user.id,
           email: user.email,
           fullName: user.fullName,
+          rol: user.rol,
+          profileImage: user.profileImage,
         },
         token: token.value!.release(),
       })

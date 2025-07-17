@@ -29,6 +29,13 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @column()
   declare rol: string
 
+  @column()
+  declare profileImage: string | null
+
+  @column()
+  declare profileImageId: string
+
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
