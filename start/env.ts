@@ -18,6 +18,10 @@ export default await Env.create(new URL('../', import.meta.url), {
   HOST: Env.schema.string({ format: 'host' }),
   LOG_LEVEL: Env.schema.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']),
 
+  CLOUDINARY_CLOUD_NAME: Env.schema.string(),
+  CLOUDINARY_API_KEY: Env.schema.string(),
+  CLOUDINARY_API_SECRET: Env.schema.string(),
+
   /*
   |----------------------------------------------------------
   | Variables for configuring database connection
