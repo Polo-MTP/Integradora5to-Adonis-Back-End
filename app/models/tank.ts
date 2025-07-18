@@ -23,6 +23,9 @@ export default class Tank extends BaseModel {
   @column()
   declare user_id: number
 
+  @column()
+  declare is_active: boolean
+
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>
 

@@ -15,6 +15,7 @@ export default class TanksController {
       const tank = await Tank.create({
         name: payload.name,
         description: payload.description,
+        is_active: false,
         user_id: user.id,
       })
 
