@@ -21,10 +21,10 @@ export default class Tank extends BaseModel {
   declare uuid: string
 
   @column()
-  declare user_id: number
+  declare userId: number
 
   @column()
-  declare is_active: boolean
+  declare isActive: boolean
 
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>

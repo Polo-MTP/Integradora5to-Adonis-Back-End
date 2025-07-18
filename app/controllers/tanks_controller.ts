@@ -2,7 +2,6 @@ import Tank from '#models/tank'
 import UserConfig from '#models/user_config'
 import { Tankvalidator } from '#validators/tank'
 import type { HttpContext } from '@adonisjs/core/http'
-import { DateTime } from 'luxon'
 
 export default class TanksController {
   async create({ request, response, auth }: HttpContext) {
@@ -10,15 +9,13 @@ export default class TanksController {
       const user = await auth.authenticate()
       const payload = await request.validateUsing(Tankvalidator)
 
-      console.log('Payload:', payload)
-
       const tank = await Tank.create({
         name: payload.name,
         description: payload.description,
-        is_active: false,
-        user_id: user.id,
+        isActive: false,
+        userId: user.id,
       })
-
+      
       return response.json({
         success: true,
         data: tank,
@@ -38,10 +35,20 @@ export default class TanksController {
       const user = await auth.authenticate()
       const tanks = await Tank.query().where('user_id', user.id).preload('devices').preload('user')
 
+      if (tanks.length === 0) {
+        return response.status(404).json({
+          success: false,
+          message: 'No se encontraron tanques',
+        })
+      }
+
+
       return response.json({
         success: true,
         data: tanks,
       })
+
+      
     } catch (error) {
       return response.status(500).json({
         success: false,

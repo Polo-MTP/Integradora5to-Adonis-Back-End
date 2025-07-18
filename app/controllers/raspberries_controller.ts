@@ -3,6 +3,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 
 export default class RaspberriesController {
   async index({ response, request }: HttpContext) {
+    
     try {
       const Uuid = request.input('uuid')
 

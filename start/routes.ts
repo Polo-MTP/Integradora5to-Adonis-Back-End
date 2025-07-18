@@ -3,8 +3,6 @@ import { middleware } from './kernel.js'
 const authController = () => import('../app/controllers/auth_controller.js')
 const TanksController = () => import('../app/controllers/tanks_controller.js')
 const RaspberriesController = () => import('../app/controllers/raspberries_controller.js')
-const AdminController = () => import('../app/controllers/admin_controller.js')
-const ConfigsController = () => import('../app/controllers/configs_controller.js')
 
 import router from '@adonisjs/core/services/router'
 
@@ -21,25 +19,26 @@ router
   })
   .prefix('/auth')
 
-router
-  .group(() => {
-    router.post('/register', [authController, 'registerAdmin']).use(middleware.onlyAdmin())
-  })
-  .prefix('/admin')
-  .use(middleware.auth())
 
-router
-  .group(() => {
+  
+router.group(() => {
+    router.post('/register', [authController, 'registerAdmin']).use(middleware.onlyAdmin())
+}).prefix('/admin').use(middleware.auth())
+
+
+
+router.group(() => {
     router.post('/logout', [authController, 'logout'])
     router.get('/me', [authController, 'me'])
-  })
-  .use(middleware.auth())
+}).use(middleware.auth()).prefix('/auth')
 
-router
-  .group(() => {
+
+
+router.group(() => {
     router.get('/tanks', [TanksController, 'index'])
     router.post('/tanks', [TanksController, 'create'])
-  })
-  .use(middleware.auth())
+}).use(middleware.auth())
+
+
 
 router.post('/getdevices', [RaspberriesController, 'index'])
