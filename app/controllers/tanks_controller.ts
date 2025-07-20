@@ -2,6 +2,8 @@ import Tank from '#models/tank'
 import UserConfig from '#models/user_config'
 import { Tankvalidator } from '#validators/tank'
 import type { HttpContext } from '@adonisjs/core/http'
+import SensorType from '#models/sensor_type'
+import Device from '#models/device'
 
 export default class TanksController {
   async create({ request, response, auth }: HttpContext) {
@@ -14,13 +16,31 @@ export default class TanksController {
         description: payload.description,
         isActive: false,
         userId: user.id,
+        uuid: null
       })
+
+      for (const device of payload.devices) {
+        const type = await SensorType.find(device.sensor_type_id)
+
+        if(!type) continue
+
+        for (let i = 0; i < device.quantity; i++) {
+           Device.create({
+            tankId: tank.id,
+            name: `${type.name}/${i + 1}`,
+            code: `${type.code}/${i + 1}`,
+            sensorTypeId: type.id,
+          })
+        }
+      }
       
       return response.json({
         success: true,
         data: tank,
         message: 'Tanque creado exitosamente',
       })
+
+      
     } catch (error) {
       return response.status(400).json({
         success: false,

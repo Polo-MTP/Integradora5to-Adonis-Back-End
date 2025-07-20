@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Tank from './tank.js'
+import SensorType from './sensor_type.js'
 
 export default class Device extends BaseModel {
   @column({ isPrimary: true })
@@ -10,8 +11,8 @@ export default class Device extends BaseModel {
   @column()
   declare tankId: number
 
-  @belongsTo(() => Tank)
-  declare tank: BelongsTo<typeof Tank>
+  @column()
+  declare sensorTypeId: number 
 
   @column()
   declare name: string
@@ -24,4 +25,12 @@ export default class Device extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
+
+  @belongsTo(() => Tank)
+  declare tank: BelongsTo<typeof Tank>
+
+  @belongsTo(() => SensorType, {
+    foreignKey: 'sensorTypeId',
+  })
+  declare sensorType: BelongsTo<typeof SensorType> 
 }

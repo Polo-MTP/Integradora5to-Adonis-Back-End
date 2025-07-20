@@ -2,6 +2,7 @@ import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import User from '#models/user'
 import Tank from '#models/tank'
 import Device from '#models/device'
+import SensorType from '#models/sensor_type'
 
 export default class DatabaseSeeder extends BaseSeeder {
   public async run() {
@@ -21,6 +22,16 @@ export default class DatabaseSeeder extends BaseSeeder {
         password: 'cliente1234',
         rol: 'cliente',
       }
+    )
+
+    const sensorType1 = await SensorType.updateOrCreate(
+      { code: 'temp' },
+      { name: 'temperatura' }
+    )
+
+    const sensorType2 = await SensorType.updateOrCreate(
+      { code: 'wtr' },
+      { name: 'nivel de agua' }
     )
 
     const tanque1 = await Tank.updateOrCreate(

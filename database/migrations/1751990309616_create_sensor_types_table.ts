@@ -1,15 +1,14 @@
 import { BaseSchema } from '@adonisjs/lucid/schema'
 
 export default class extends BaseSchema {
-  protected tableName = 'devices'
+  protected tableName = 'sensor_types'
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
-      table.integer('tank_id').unsigned().references('id').inTable('tanks').onDelete('CASCADE')
-      table.integer('sensor_type_id').unsigned().references('id').inTable('sensor_types').onDelete('CASCADE')
       table.string('name')
       table.string('code')
+      table.boolean('is_active').defaultTo(true)
       table.timestamp('created_at').nullable()
       table.timestamp('updated_at').nullable()
     })

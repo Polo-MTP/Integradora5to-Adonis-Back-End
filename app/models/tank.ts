@@ -18,7 +18,7 @@ export default class Tank extends BaseModel {
   declare description: string
 
   @column()
-  declare uuid: string
+  declare uuid: string | null
 
   @column()
   declare userId: number
