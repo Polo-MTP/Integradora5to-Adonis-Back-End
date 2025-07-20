@@ -41,10 +41,10 @@ router.group(() => {
 }).use(middleware.auth())
 
 router.group(() => {
-  router.get('/sensorTypes', [AdminController, 'indexSensorTypes'])
   router.post('/sensorTypes', [AdminController, 'createSensorType'])
 }).use(middleware.auth())
 
+router.get('/sensor-types', [AdminController, 'indexSensorTypes'])
 
 
 router.post('/getdevices', [RaspberriesController, 'index'])
