@@ -20,4 +20,8 @@ export default class RaspberriesController {
       })
     }
   }
+
+  async lastdate({ response, request }: HttpContext) {
+    
+  }
 }
