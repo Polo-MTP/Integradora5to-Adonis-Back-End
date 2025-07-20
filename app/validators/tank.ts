@@ -4,5 +4,11 @@ export const Tankvalidator = vine.compile(
   vine.object({
     name: vine.string().trim().minLength(5).maxLength(30),
     description: vine.string().trim().minLength(5).maxLength(30),
+    devices: vine.array(
+      vine.object({ 
+        sensor_type_id: vine.number(),
+        quantity: vine.number(),
+      })
+    ),
   })
 )
