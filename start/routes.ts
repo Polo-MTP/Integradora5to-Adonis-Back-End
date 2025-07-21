@@ -31,6 +31,8 @@ router.group(() => {
 router.group(() => {
     router.post('/logout', [authController, 'logout'])
     router.get('/me', [authController, 'me'])
+    router.patch('/user', [authController, 'update'])
+    router.put('/profile-image', [authController, 'updateProfileImage'])
 }).use(middleware.auth()).prefix('/auth')
 
 
