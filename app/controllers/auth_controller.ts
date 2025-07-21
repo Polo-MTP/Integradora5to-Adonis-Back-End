@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import User from '#models/user'
 import { registerValidator, loginValidator } from '#validators/auth'
 import CloudinaryService from '#services/cloudinary_service'
+import { updatedUserValidator } from '#validators/auth'
 
 export default class AuthController {
   async register({ request, response }: HttpContext) {
@@ -80,7 +81,6 @@ export default class AuthController {
         profileImage: profileImageData?.url,
         profileImageId: profileImageData?.publicId,
       }
-
 
       const user = await User.create(userData)
       const token = await User.accessTokens.create(user)
@@ -167,6 +167,84 @@ export default class AuthController {
     } catch (error) {
       return response.status(401).json({
         message: 'Usuario no autenticado',
+      })
+    }
+  }
+
+  async update({ request, response, auth }: HttpContext) {
+    try {
+      const user = await auth.authenticate()
+      const payload = await request.validateUsing(updatedUserValidator(user.id))
+
+      user.fullName = payload.fullName
+
+      if (payload.email !== user.email) {
+        user.email = payload.email
+      }
+
+      await user.save()
+
+      return response.json({
+        success: true,
+        message: 'Usuario actualizado exitosamente',
+        user: {
+          id: user.id,
+          email: user.email,
+          fullName: user.fullName,
+          rol: user.rol,
+          profileImage: user.profileImage,
+        },
+      })
+    } catch (error) {
+      return response.status(400).json({
+        success: false,
+        message: 'Error al actualizar el usuario',
+        errors: error.messages || error.message,
+      })
+    }
+  }
+
+  async updateProfileImage({ request, response, auth }: HttpContext) {
+    try {
+      const user = await auth.authenticate()
+
+      const profileImage = request.file('profileImage', {
+        size: '2mb',
+        extnames: ['jpg', 'png', 'jpeg'],
+      })
+
+      if(!profileImage) {
+        return response.status(400).json({
+          success: false,
+          message: 'Error al subir imagen',
+          errors: 'No se ha subido ninguna imagen',
+        })
+      }
+
+      if(user.profileImageId) {
+        await CloudinaryService.deleteImage(user.profileImageId)
+      }
+
+      const uploadResult = await CloudinaryService.uploadImage(profileImage)
+
+      user.profileImage = uploadResult.url
+      user.profileImageId = uploadResult.publicId
+
+      await user.save()
+
+      return response.json({
+        success: true,
+        message: 'Imagen actualizada exitosamente',
+        user: {
+          id: user.id,
+          profileImage: user.profileImage,
+        },
+      })
+    } catch (error) {
+      return response.status(400).json({
+        success: false,
+        message: 'Error al actualizar la imagen de perfil',
+        errors: error.messages || error.message,
       })
     }
   }

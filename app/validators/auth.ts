@@ -1,5 +1,6 @@
 import vine from '@vinejs/vine'
 
+
 export const registerValidator = vine.compile(
   vine.object({
     fullName: vine.string().minLength(2).maxLength(100),
@@ -28,8 +29,17 @@ export const loginValidator = vine.compile(
   })
 )
 
-export const updatedUserValidator = vine.compile(
+export const updatedUserValidator = (currentUserId: number) => vine.compile(
   vine.object({
-    name: vine.string().minLength(2).maxLength(100),
+    fullName: vine.string().minLength(2).maxLength(100),
+    email: vine.string().email().unique(async (db, value) => {
+      const user = await db
+        .from('users')
+        .where('email', value)
+        .whereNot('id', currentUserId)  
+        .first()
+      return !user
+    }),
   })
 )
+
