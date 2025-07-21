@@ -48,3 +48,9 @@ router.get('/sensor-types', [AdminController, 'indexSensorTypes'])
 
 
 router.post('/getdevices', [RaspberriesController, 'index'])
+
+// Rutas para obtener datos de sensores (requieren autenticación)
+router.group(() => {
+  router.get('/lastdate', [RaspberriesController, 'lastdate'])
+  router.get('/last-by-sensor', [RaspberriesController, 'lastBySensor'])
+}).use(middleware.auth()).prefix('/raspberry')

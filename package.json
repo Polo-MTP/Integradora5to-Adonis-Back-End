@@ -59,6 +59,7 @@
     "@vinejs/vine": "^3.0.1",
     "cloudinary": "^2.7.0",
     "luxon": "^3.6.1",
+    "mongoose": "^8.16.4",
     "mysql2": "^3.14.1",
     "reflect-metadata": "^0.2.2"
   },
