@@ -22,6 +22,16 @@ new Ignitor(APP_ROOT, { importer: IMPORTER })
   })
   .httpServer()
   .start()
+  .then((httpServer) => {
+    // Inicializar Socket.IO después de que el servidor HTTP esté listo
+    import('../app/services/socket_service.js')
+      .then((module) => {
+        module.default.boot(httpServer)
+      })
+      .catch((error) => {
+        console.error('Error inicializando Socket.IO:', error)
+      })
+  })
   .catch((error) => {
     process.exitCode = 1
     prettyPrintError(error)

@@ -4,6 +4,7 @@ const authController = () => import('../app/controllers/auth_controller.js')
 const TanksController = () => import('../app/controllers/tanks_controller.js')
 const RaspberriesController = () => import('../app/controllers/raspberries_controller.js')
 const AdminController = () => import('../app/controllers/admin_controller.js')
+const SensorController = () => import('../app/controllers/sensor_controller.js')
 
 import router from '@adonisjs/core/services/router'
 
@@ -56,3 +57,10 @@ router.group(() => {
   router.get('/lastdate', [RaspberriesController, 'lastdate'])
   router.get('/last-by-sensor', [RaspberriesController, 'lastBySensor'])
 }).use(middleware.auth()).prefix('/raspberry')
+
+// Rutas para el sistema de sensores en tiempo real (API para Python)
+router.group(() => {
+  router.post('/sensor-data', [SensorController, 'storeSensorData'])
+  router.post('/sensor-data/batch', [SensorController, 'storeBatchSensorData'])
+  router.get('/socket/stats', [SensorController, 'getSocketStats'])
+}).prefix('/api')
