@@ -52,7 +52,7 @@ export default class TanksController {
   async index({ response, auth }: HttpContext) {
     try {
       const user = await auth.authenticate()
-      const tanks = await Tank.query().where('user_id', user.id).preload('devices').preload('user')
+      const tanks = await Tank.query().where('user_id', user.id)
 
       if (tanks.length === 0) {
         return response.status(404).json({
@@ -75,46 +75,46 @@ export default class TanksController {
 
 
   // devuelve los dispositivos con los datos de los últimos sensores
-  async getDevicesData({ response, auth }: HttpContext) {
+  async show({ response, auth, params }: HttpContext) {
     try {
       const user = await auth.authenticate()
 
-      const tanks = await Tank.query().where('user_id', user.id).preload('devices')
+      const tanks = await Tank.query()
+        .where('id', params.id)
+        .andWhere('user_id', user.id)
+        .preload('devices', (query)=> {
+          query.preload('sensorType')
+        })
+        .first()
 
-      if (tanks.length === 0) {
+      if (!tanks) {
         return response.status(404).json({
           success: false,
           message: 'No se encontraron tanques',
         })
       }
 
-      const result = []
+      const tankJson = tanks.toJSON()
+      const devicesWithData = []
 
-      for (const tank of tanks) {
-        const tankJson = tank.toJSON()
+      for (const device of tankJson.devices) {
 
-        const devicesWithData = []
-
-        for (const device of tankJson.devices) {
-          const ultimoDato = await SensorData.findOne({ device_id: device.id })
-            .sort({ date: -1 })
-            .lean()
+        const ultimoDato = await SensorData.findOne({ device_id: device.id })
+          .sort({ date: -1 })
+          .lean()
 
           devicesWithData.push({
             ...device,
-            lastData: ultimoDato || null,
+            ultimoDato: ultimoDato || null,
           })
-        }
-
-        result.push({
-          ...tankJson,
-          devices: devicesWithData,
-        })
       }
 
       return response.json({
         success: true,
-        data: result,
+        data: {
+          ...tankJson,
+          devices: devicesWithData,
+        }
       })
     } catch (error) {
       return response.status(500).json({
@@ -125,35 +125,6 @@ export default class TanksController {
     }
   }
 
-  async show({ params, response, auth }: HttpContext) {
-    try {
-      const user = await auth.authenticate()
-      const tank = await Tank.query()
-        .where('id', params.id)
-        .where('user_id', user.id)
-        .preload('devices')
-        .preload('user')
-        .first()
-
-      if (!tank) {
-        return response.status(404).json({
-          success: false,
-          message: 'Tanque no encontrado',
-        })
-      }
-
-      return response.json({
-        success: true,
-        data: tank,
-      })
-    } catch (error) {
-      return response.status(500).json({
-        success: false,
-        message: 'Error al obtener el tanque',
-        error: error.message,
-      })
-    }
-  }
 
   async update({ params, request, response, auth }: HttpContext) {
     try {

@@ -41,7 +41,7 @@ router.group(() => {
 router.group(() => {
     router.get('/tanks', [TanksController, 'index'])
     router.post('/tanks', [TanksController, 'create'])
-    router.get('/devices-data', [TanksController, 'getDevicesData'])
+    router.get('/tanks/:id/data', [TanksController, 'show'])
 }).use(middleware.auth())
 
 
