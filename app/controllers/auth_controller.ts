@@ -176,7 +176,9 @@ export default class AuthController {
       const user = await auth.authenticate()
       const payload = await request.validateUsing(updatedUserValidator(user.id))
 
-      user.fullName = payload.fullName
+      if (payload.fullName !== undefined) {
+        user.fullName = payload.fullName
+      }
 
       if (payload.email !== user.email) {
         user.email = payload.email

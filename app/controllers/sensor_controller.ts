@@ -2,7 +2,6 @@ import type { HttpContext } from '@adonisjs/core/http'
 import SensorData from '#models/sensor_data'
 import socketService from '#services/socket_service'
 import logger from '@adonisjs/core/services/logger'
-import { DateTime } from 'luxon'
 
 export default class SensorController {
   

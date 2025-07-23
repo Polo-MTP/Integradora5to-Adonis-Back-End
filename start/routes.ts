@@ -44,13 +44,14 @@ router.group(() => {
     router.get('/devices-data', [TanksController, 'getDevicesData'])
 }).use(middleware.auth())
 
+
 router.group(() => {
-  router.post('/sensorTypes', [AdminController, 'createSensorType'])
+  router.post('/sensor-types', [AdminController, 'createSensorType'])
 }).use(middleware.auth())
 
+
+
 router.get('/sensor-types', [AdminController, 'indexSensorTypes'])
-
-
 router.post('/getdevices', [RaspberriesController, 'index'])
 
 
@@ -58,6 +59,9 @@ router.group(() => {
   router.get('/lastdate', [RaspberriesController, 'lastdate'])
   router.get('/last-by-sensor', [RaspberriesController, 'lastBySensor'])
 }).use(middleware.auth()).prefix('/raspberry')
+
+
+
 
 // Rutas para el sistema de sensores en tiempo real (API para Python)
 router.group(() => {

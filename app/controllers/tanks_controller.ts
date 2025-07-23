@@ -4,6 +4,7 @@ import { Tankvalidator } from '#validators/tank'
 import type { HttpContext } from '@adonisjs/core/http'
 import SensorType from '#models/sensor_type'
 import Device from '#models/device'
+import SensorData from '#models/sensor_data'
 
 export default class TanksController {
   async create({ request, response, auth }: HttpContext) {
@@ -72,11 +73,13 @@ export default class TanksController {
     }
   }
 
+
+  // devuelve los dispositivos con los datos de los últimos sensores
   async getDevicesData({ response, auth }: HttpContext) {
     try {
       const user = await auth.authenticate()
 
-      const tanks = await Tank.query().where('user_id', user.id).preload('devices').preload('user')
+      const tanks = await Tank.query().where('user_id', user.id).preload('devices')
 
       if (tanks.length === 0) {
         return response.status(404).json({
@@ -85,7 +88,34 @@ export default class TanksController {
         })
       }
 
-      
+      const result = []
+
+      for (const tank of tanks) {
+        const tankJson = tank.toJSON()
+
+        const devicesWithData = []
+
+        for (const device of tankJson.devices) {
+          const ultimoDato = await SensorData.findOne({ device_id: device.id })
+            .sort({ date: -1 })
+            .lean()
+
+          devicesWithData.push({
+            ...device,
+            lastData: ultimoDato || null,
+          })
+        }
+
+        result.push({
+          ...tankJson,
+          devices: devicesWithData,
+        })
+      }
+
+      return response.json({
+        success: true,
+        data: result,
+      })
     } catch (error) {
       return response.status(500).json({
         success: false,
