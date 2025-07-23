@@ -3,6 +3,7 @@ import SensorData from '#models/sensor_data'
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class RaspberriesController {
+  
   async index({ response, request }: HttpContext) {
     
     try {
@@ -34,7 +35,7 @@ export default class RaspberriesController {
   async lastdate({ auth, response, request }: HttpContext) {
     try {
       const user = auth.user
-      const limit = request.input('limit', 10) // Por defecto 10 registros
+      const limit = request.input('limit', 10) 
 
       if (!user) {
         return response.status(401).json({
@@ -44,7 +45,7 @@ export default class RaspberriesController {
         })
       }
 
-      // Buscar la pecera del usuario
+      
       const tank = await Tank.query().where('userId', user.id).first()
 
       if (!tank) {
@@ -55,9 +56,9 @@ export default class RaspberriesController {
         })
       }
 
-      // Obtener los últimos datos de sensores de MongoDB
+      
       const sensorData = await SensorData.find({ id_tank: tank.id })
-        .sort({ date: -1 }) // Ordenar por fecha descendente
+        .sort({ date: -1 }) 
         .limit(parseInt(limit))
         .exec()
 

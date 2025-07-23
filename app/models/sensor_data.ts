@@ -35,10 +35,10 @@ const sensorDataSchema = new mongoose.Schema({
   },
 }, {
   timestamps: true,
-  collection: 'sensor_data', // Nombre de la colección en MongoDB
+  collection: 'dataSensores' // Nombre de la colección en MongoDB
 })
 
-// Índices para mejorar las consultas
+
 sensorDataSchema.index({ id_tank: 1, date: -1 })
 sensorDataSchema.index({ deviceId: 1, date: -1 })
 sensorDataSchema.index({ sensor: 1, date: -1 })

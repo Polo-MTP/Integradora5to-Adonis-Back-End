@@ -13,8 +13,8 @@ const IMPORTER = (filePath: string) => {
 new Ignitor(APP_ROOT, { importer: IMPORTER })
   .tap((app) => {
     app.booting(async () => {
-      await import('#start/env') // Carga variables del .env
-      await import('../start/mongo.js') // Conecta a MongoDB Atlas
+      await import('#start/env') 
+      await import('../start/mongo.js') 
     })
 
     app.listen('SIGTERM', () => app.terminate())
