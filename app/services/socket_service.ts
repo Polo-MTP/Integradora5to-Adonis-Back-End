@@ -2,7 +2,7 @@ import { Server as HttpServer } from 'http'
 import { Server as SocketIOServer, Socket } from 'socket.io'
 import logger from '@adonisjs/core/services/logger'
 import Tank from '#models/tank'
-import auth from '@adonisjs/auth/services/main'
+import User from '#models/user'
 
 class SocketService {
   private io: SocketIOServer | null = null
@@ -20,46 +20,40 @@ class SocketService {
     this.io.on('connection', (socket: Socket) => {
       logger.info(`🔌 Nueva conexión Socket: ${socket.id}`)
 
-      // Evento de autenticación
-      socket.on('authenticate', async (data: { token: string }) => {
+      // Evento de autenticación simple
+      socket.on('authenticate', async (data: { userId: number }) => {
         try {
-          // Crear un contexto HTTP falso para la autenticación
-          const fakeContext = {
-            request: {
-              header: () => `Bearer ${data.token}`
-            }
-          } as any
-
-          const guard = auth.use('api')
-          const user = await guard.authenticateUsing(['api'], fakeContext)
+          // Obtener el usuario directamente
+          const user = await User.find(data.userId)
           
-          if (user) {
-            // Obtener el tanque del usuario
-            const tank = await Tank.query().where('userId', user.id).first()
-            
-            this.authenticatedSockets.set(socket.id, { 
-              userId: user.id, 
-              tankId: tank?.id 
-            })
-            
-            // Unir al room específico del tanque
-            if (tank) {
-              socket.join(`tank_${tank.id}`)
-              logger.info(`✅ Usuario ${user.id} autenticado en tanque ${tank.id}`)
-            }
-            
-            socket.emit('authenticated', { 
-              success: true, 
-              userId: user.id,
-              tankId: tank?.id,
-              tankName: tank?.name 
-            })
-          } else {
-            socket.emit('authentication_failed', { message: 'Token inválido' })
+          if (!user) {
+            socket.emit('authentication_failed', { message: 'Usuario no encontrado' })
+            return
           }
+
+          // Obtener el tanque del usuario
+          const tank = await Tank.query().where('userId', user.id).first()
+          
+          this.authenticatedSockets.set(socket.id, { 
+            userId: user.id, 
+            tankId: tank?.id 
+          })
+          
+          // Unir al room específico del tanque
+          if (tank) {
+            socket.join(`tank_${tank.id}`)
+            logger.info(`✅ Usuario ${user.id} conectado a tanque ${tank.id}`)
+          }
+          
+          socket.emit('authenticated', { 
+            success: true, 
+            userId: user.id,
+            tankId: tank?.id,
+            tankName: tank?.name 
+          })
         } catch (error) {
-          logger.error('Error en autenticación Socket:', error)
-          socket.emit('authentication_failed', { message: 'Error de autenticación' })
+          logger.error('Error en conexión Socket:', error)
+          socket.emit('authentication_failed', { message: 'Error de conexión' })
         }
       })
 
