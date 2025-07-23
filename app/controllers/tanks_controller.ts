@@ -16,16 +16,16 @@ export default class TanksController {
         description: payload.description,
         isActive: false,
         userId: user.id,
-        uuid: null
+        uuid: null,
       })
 
       for (const device of payload.devices) {
         const type = await SensorType.find(device.sensor_type_id)
 
-        if(!type) continue
+        if (!type) continue
 
         for (let i = 0; i < device.quantity; i++) {
-           Device.create({
+          Device.create({
             tankId: tank.id,
             name: `${type.name}/${i + 1}`,
             code: `${type.code}/${i + 1}`,
@@ -33,14 +33,12 @@ export default class TanksController {
           })
         }
       }
-      
+
       return response.json({
         success: true,
         data: tank,
         message: 'Tanque creado exitosamente',
       })
-
-      
     } catch (error) {
       return response.status(400).json({
         success: false,
@@ -61,18 +59,37 @@ export default class TanksController {
           message: 'No se encontraron tanques',
         })
       }
-
-
       return response.json({
         success: true,
         data: tanks,
       })
+    } catch (error) {
+      return response.status(500).json({
+        success: false,
+        message: 'Error al obtener los tanques',
+        error: error.message,
+      })
+    }
+  }
+
+  async getDevicesData({ response, auth }: HttpContext) {
+    try {
+      const user = await auth.authenticate()
+
+      const tanks = await Tank.query().where('user_id', user.id).preload('devices').preload('user')
+
+      if (tanks.length === 0) {
+        return response.status(404).json({
+          success: false,
+          message: 'No se encontraron tanques',
+        })
+      }
 
       
     } catch (error) {
       return response.status(500).json({
         success: false,
-        message: 'Error al obtener los tanques',
+        message: 'Error al obtener los datos de los dispositivos',
         error: error.message,
       })
     }

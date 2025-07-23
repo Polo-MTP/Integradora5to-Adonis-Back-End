@@ -41,6 +41,7 @@ router.group(() => {
 router.group(() => {
     router.get('/tanks', [TanksController, 'index'])
     router.post('/tanks', [TanksController, 'create'])
+    router.get('/devices-data', [TanksController, 'getDevicesData'])
 }).use(middleware.auth())
 
 router.group(() => {
@@ -52,7 +53,7 @@ router.get('/sensor-types', [AdminController, 'indexSensorTypes'])
 
 router.post('/getdevices', [RaspberriesController, 'index'])
 
-// Rutas para obtener datos de sensores (requieren autenticación)
+
 router.group(() => {
   router.get('/lastdate', [RaspberriesController, 'lastdate'])
   router.get('/last-by-sensor', [RaspberriesController, 'lastBySensor'])
