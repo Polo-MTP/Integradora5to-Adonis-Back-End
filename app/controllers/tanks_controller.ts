@@ -74,7 +74,7 @@ export default class TanksController {
   }
 
 
-  // devuelve los dispositivos con los datos de los últimos sensores
+  // devuelve la pecera los dispositivos con los datos de los últimos sensores
   async show({ response, auth, params }: HttpContext) {
     try {
       const user = await auth.authenticate()
