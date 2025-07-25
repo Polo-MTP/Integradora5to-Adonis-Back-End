@@ -55,6 +55,31 @@ export default class AuthController {
     }
   }
 
+  async CheckAdmin({  response, auth }: HttpContext) {
+    try {
+      const user = await auth.authenticate()
+
+
+      if (user.rol !== 'admin') {
+        return response.unauthorized({
+          message: 'Usuario no es autorizado',
+        })
+      }
+      return response.json({
+        success: true,
+        user :{
+          id: user.id,
+          email: user.email,
+          fullName: user.fullName,
+          rol: user.rol,
+          profileImage: user.profileImage,
+        }
+      })
+    } catch (error) {
+      
+    }
+  }
+
   async registerAdmin({ request, response }: HttpContext) {
     try {
       const payload = await request.validateUsing(registerValidator)
@@ -176,7 +201,9 @@ export default class AuthController {
       const user = await auth.authenticate()
       const payload = await request.validateUsing(updatedUserValidator(user.id))
 
-      user.fullName = payload.fullName
+      if (payload.fullName !== undefined) {
+        user.fullName = payload.fullName
+      }
 
       if (payload.email !== user.email) {
         user.email = payload.email
@@ -245,6 +272,61 @@ export default class AuthController {
         success: false,
         message: 'Error al actualizar la imagen de perfil',
         errors: error.messages || error.message,
+      })
+    }
+  } 
+
+  async validateToken({ response, auth }: HttpContext) {
+    try {
+      const user = await auth.authenticate()
+
+      if(!user){
+        return response.status(401).json({
+          message: 'Token no válido',
+        })
+      }
+
+      return response.json({
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          fullName: user.fullName,
+          rol: user.rol,
+          profileImage: user.profileImage,
+        },
+      })
+    } catch (error) {
+      return response.status(400).json({
+        message: 'Token invalido o expirado',
+      })
+    }
+  }
+
+  async checkClient({ response, auth }: HttpContext) {
+    try {
+      const user = await auth.authenticate()
+
+      if (user.rol !== 'cliente') {
+        return response.status(401).json({
+          message: 'Acceso denegado. Solo los clientes pueden realizar esta acción.',
+        })
+      }
+
+      return response.json({
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          fullName: user.fullName,
+          rol: user.rol,
+          profileImage: user.profileImage,
+        },
+      })
+    } catch (error) {
+      return response.status(400).json({
+        message: 'Error al validar el token',
+        error: error.message,
       })
     }
   }

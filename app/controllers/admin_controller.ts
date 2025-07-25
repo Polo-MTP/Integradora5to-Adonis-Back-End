@@ -4,16 +4,39 @@ import type { HttpContext } from '@adonisjs/core/http'
 import SensorType from '#models/sensor_type'
 
 export default class AdminController {
-  async getUsers({ response }: HttpContext) {
+  async index({ response, request }: HttpContext) {
     try {
-      const data = await User.query()
+      const page = Number(request.input('page', 1))
+      const perPage = Number(request.input('perPage', 10))
+      let sortField = request.input('sortField', 'id')
+      if (!sortField) {
+        sortField = 'id'
+      }
+      const sortOrder = request.input('sortOrder', 'asc') === 'desc' ? 'desc' : 'asc'
+      const globalFilter = request.input('globalFilter', '').trim().toLowerCase()
 
-      return response.json(data)
-    } catch (error) {
-      return response.status(500).json({
-        message: 'Error al obtener los usuarios',
-        error: error.message,
+      const query = User.query()
+
+      if (globalFilter) {
+        query.where((q) => {
+          q.whereRaw('LOWER(email) like ?', [`%${globalFilter}%`])
+           .orWhereRaw('LOWER(full_name) like ?', [`%${globalFilter}%`])
+        })
+      }
+
+      query.orderBy(sortField, sortOrder)
+
+      const users = await query.paginate(page, perPage)
+
+      return response.json({
+        message: 'Usuarios cargados exitosamente',
+        data: users.serialize().data,
+        meta: {
+          total: users.total,
+        },
       })
+    } catch (error) {
+      return response.status(500).json({ message: 'Error interno', error: error.message })
     }
   }
 

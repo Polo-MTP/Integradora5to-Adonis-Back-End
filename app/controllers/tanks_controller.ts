@@ -4,6 +4,7 @@ import { Tankvalidator } from '#validators/tank'
 import type { HttpContext } from '@adonisjs/core/http'
 import SensorType from '#models/sensor_type'
 import Device from '#models/device'
+import SensorData from '#models/sensor_data'
 
 export default class TanksController {
   async create({ request, response, auth }: HttpContext) {
@@ -51,7 +52,7 @@ export default class TanksController {
   async index({ response, auth }: HttpContext) {
     try {
       const user = await auth.authenticate()
-      const tanks = await Tank.query().where('user_id', user.id).preload('devices').preload('user')
+      const tanks = await Tank.query().where('user_id', user.id)
 
       if (tanks.length === 0) {
         return response.status(404).json({
@@ -72,20 +73,49 @@ export default class TanksController {
     }
   }
 
-  async getDevicesData({ response, auth }: HttpContext) {
+
+  // devuelve la pecera los dispositivos con los datos de los últimos sensores
+  async show({ response, auth, params }: HttpContext) {
     try {
       const user = await auth.authenticate()
 
-      const tanks = await Tank.query().where('user_id', user.id).preload('devices').preload('user')
+      const tanks = await Tank.query()
+        .where('id', params.id)
+        .andWhere('user_id', user.id)
+        .preload('devices', (query)=> {
+          query.preload('sensorType')
+        })
+        .first()
 
-      if (tanks.length === 0) {
+      if (!tanks) {
         return response.status(404).json({
           success: false,
           message: 'No se encontraron tanques',
         })
       }
 
-      
+      const tankJson = tanks.toJSON()
+      const devicesWithData = []
+
+      for (const device of tankJson.devices) {
+
+        const ultimoDato = await SensorData.findOne({ device_id: device.id })
+          .sort({ date: -1 })
+          .lean()
+
+          devicesWithData.push({
+            ...device,
+            ultimoDato: ultimoDato || null,
+          })
+      }
+
+      return response.json({
+        success: true,
+        data: {
+          ...tankJson,
+          devices: devicesWithData,
+        }
+      })
     } catch (error) {
       return response.status(500).json({
         success: false,
@@ -95,35 +125,6 @@ export default class TanksController {
     }
   }
 
-  async show({ params, response, auth }: HttpContext) {
-    try {
-      const user = await auth.authenticate()
-      const tank = await Tank.query()
-        .where('id', params.id)
-        .where('user_id', user.id)
-        .preload('devices')
-        .preload('user')
-        .first()
-
-      if (!tank) {
-        return response.status(404).json({
-          success: false,
-          message: 'Tanque no encontrado',
-        })
-      }
-
-      return response.json({
-        success: true,
-        data: tank,
-      })
-    } catch (error) {
-      return response.status(500).json({
-        success: false,
-        message: 'Error al obtener el tanque',
-        error: error.message,
-      })
-    }
-  }
 
   async update({ params, request, response, auth }: HttpContext) {
     try {

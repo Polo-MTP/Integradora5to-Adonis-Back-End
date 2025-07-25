@@ -11,6 +11,5 @@ export default class OnlyAdminMiddleware {
       })
     }
     await next()
-  
-  *9}
+  }
 }
