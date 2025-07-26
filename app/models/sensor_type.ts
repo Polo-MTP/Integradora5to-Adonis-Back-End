@@ -5,7 +5,6 @@ export default class SensorType extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
 
-
   @column()
   declare name: string
 
@@ -13,9 +12,11 @@ export default class SensorType extends BaseModel {
   declare code: string
 
   @column()
+  declare readingInterval: number
+
+  @column()
   declare isActive: boolean
 
-  
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

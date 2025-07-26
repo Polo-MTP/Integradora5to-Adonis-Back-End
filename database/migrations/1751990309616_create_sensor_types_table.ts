@@ -8,6 +8,7 @@ export default class extends BaseSchema {
       table.increments('id')
       table.string('name')
       table.string('code')
+      table.integer('reading_interval') // in seconds
       table.boolean('is_active').defaultTo(true)
       table.timestamp('created_at').nullable()
       table.timestamp('updated_at').nullable()
