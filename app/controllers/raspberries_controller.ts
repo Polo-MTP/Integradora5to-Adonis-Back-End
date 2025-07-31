@@ -1,6 +1,7 @@
 import Tank from '#models/tank'
 import SensorData from '#models/sensor_data'
 import type { HttpContext } from '@adonisjs/core/http'
+import UserConfig from '#models/user_config'
 
 export default class RaspberriesController {
   // Controlador modificado para incluir sensor_type con time_interval
@@ -47,6 +48,39 @@ export default class RaspberriesController {
       return response.status(404).json({
         success: false,
         message: 'Error al obtener dispositivos',
+        error: error.message,
+      })
+    }
+  }
+
+  async indexConfig({ response, request }: HttpContext) {
+    try {
+      const uuid = request.input('uuid')
+      const pecera = await Tank.findBy('uuid', uuid)
+
+      if (!pecera) {
+        return response.status(404).json({
+          success: false,
+          message: 'No se encontró la pecera con ese UUID',
+          error: 'No se encontró la pecera con ese UUID',
+        })
+      }
+
+      const configuraciones = await UserConfig.query().where('tank_id', pecera.id)
+
+      const configs = configuraciones.map((config) => ({
+        code: config.code,
+        config_type: config.config_type,
+
+        config_value: config.config_value,
+      }))
+
+      return response.json(configs)
+    } catch (error) {
+      console.error('❌ Error al obtener configuraciones:', error)
+      return response.status(500).json({
+        success: false,
+        message: 'Error del servidor al obtener configuraciones',
         error: error.message,
       })
     }
