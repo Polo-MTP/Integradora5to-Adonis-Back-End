@@ -13,8 +13,8 @@ const IMPORTER = (filePath: string) => {
 new Ignitor(APP_ROOT, { importer: IMPORTER })
   .tap((app) => {
     app.booting(async () => {
-      await import('#start/env') 
-      await import('../start/mongo.js') 
+      await import('#start/env')
+      await import('../start/mongo.js')
     })
 
     app.listen('SIGTERM', () => app.terminate())
@@ -22,8 +22,7 @@ new Ignitor(APP_ROOT, { importer: IMPORTER })
   })
   .httpServer()
   .start()
-  .then((httpServer) => {
-  })
+  .then((httpServer) => {})
   .catch((error) => {
     process.exitCode = 1
     prettyPrintError(error)
