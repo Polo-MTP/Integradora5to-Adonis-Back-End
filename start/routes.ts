@@ -4,6 +4,7 @@ const authController = () => import('../app/controllers/auth_controller.js')
 const TanksController = () => import('../app/controllers/tanks_controller.js')
 const RaspberriesController = () => import('../app/controllers/raspberries_controller.js')
 const AdminController = () => import('../app/controllers/admin_controller.js')
+const UsersController = () => import('../app/controllers/users_controller.js')
 
 import router from '@adonisjs/core/services/router'
 
@@ -66,4 +67,5 @@ router
   .use(middleware.auth())
   .prefix('/raspberry')
 
-router.post('/getconfig', [RaspberriesController, 'indexConfig'])
+router.post('/getconfig', [RaspberriesController, 'indexConfig']) //
+router.post('/addconfig', [UsersController, 'addConfig'])
