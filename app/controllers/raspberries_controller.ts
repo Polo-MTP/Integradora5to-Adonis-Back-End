@@ -127,7 +127,6 @@ export default class RaspberriesController {
         })
       }
 
-      // Buscar la pecera del usuario
       const tank = await Tank.query().where('userId', user.id).first()
 
       if (!tank) {
@@ -138,7 +137,6 @@ export default class RaspberriesController {
         })
       }
 
-      // Obtener datos específicos del sensor
       const sensorData = await SensorData.find({
         id_tank: tank.id,
         sensor: sensorType,
