@@ -13,8 +13,8 @@ const IMPORTER = (filePath: string) => {
 new Ignitor(APP_ROOT, { importer: IMPORTER })
   .tap((app) => {
     app.booting(async () => {
-      await import('#start/env') 
-      await import('../start/mongo.js') 
+      await import('#start/env')
+      await import('../start/mongo.js')
     })
 
     app.listen('SIGTERM', () => app.terminate())
@@ -22,16 +22,7 @@ new Ignitor(APP_ROOT, { importer: IMPORTER })
   })
   .httpServer()
   .start()
-  .then((httpServer) => {
-    // Inicializar Socket.IO después de que el servidor HTTP esté listo
-    import('../app/services/socket_service.js')
-      .then((module) => {
-        module.default.boot(httpServer)
-      })
-      .catch((error) => {
-        console.error('Error inicializando Socket.IO:', error)
-      })
-  })
+  .then((httpServer) => {})
   .catch((error) => {
     process.exitCode = 1
     prettyPrintError(error)

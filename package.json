@@ -57,7 +57,6 @@
     "@adonisjs/cors": "^2.2.1",
     "@adonisjs/env": "^6.2.0",
     "@adonisjs/lucid": "^21.6.1",
-    "@types/socket.io": "^3.0.1",
     "@vinejs/vine": "^3.0.1",
     "cloudinary": "^2.7.0",
     "luxon": "^3.6.1",
