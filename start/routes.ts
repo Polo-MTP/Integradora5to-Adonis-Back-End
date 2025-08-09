@@ -69,3 +69,6 @@ router
 
 router.post('/getconfig', [RaspberriesController, 'indexConfig']) //
 router.post('/addconfig', [UsersController, 'addConfig'])
+router.get('/getconfigs', [UsersController, 'getConfigs'])
+router.put('/updateconfig', [UsersController, 'updateConfig'])
+router.delete('/deleteconfig', [UsersController, 'deleteConfig'])

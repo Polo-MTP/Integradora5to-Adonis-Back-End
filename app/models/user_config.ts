@@ -20,10 +20,13 @@ export default class UserConfig extends BaseModel {
   declare code: string
 
   @column()
+  declare config_day: number
+
+  @column()
   declare config_value: DateTime
 
   @column()
-  declare user_id: number
+  declare tank_id: number
 
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>
