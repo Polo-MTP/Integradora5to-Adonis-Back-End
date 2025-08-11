@@ -9,6 +9,7 @@ export default class extends BaseSchema {
       table.string('code')
       table.string('config_type')
       table.integer('config_day')
+      table.boolean('isActive').defaultTo(true)
       table.string('config_value')
       table.integer('tank_id').unsigned().references('id').inTable('tanks').onDelete('CASCADE')
       table.timestamp('created_at').nullable()

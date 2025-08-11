@@ -71,6 +71,7 @@ export default class RaspberriesController {
       const configs = configuraciones.map((config) => ({
         code: config.code,
         config_type: config.config_type,
+        config_day: config.config_day,
 
         config_value: config.config_value,
       }))

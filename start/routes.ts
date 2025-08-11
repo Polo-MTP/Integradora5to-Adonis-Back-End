@@ -67,8 +67,18 @@ router
   .use(middleware.auth())
   .prefix('/raspberry')
 
-router.post('/getconfig', [RaspberriesController, 'indexConfig']) //
+router.post('/getconfig', [RaspberriesController, 'indexConfig'])
 router.post('/addconfig', [UsersController, 'addConfig'])
+
 router.get('/getconfigs', [UsersController, 'getConfigs'])
-router.put('/updateconfig', [UsersController, 'updateConfig'])
-router.delete('/deleteconfig', [UsersController, 'deleteConfig'])
+
+router.get('/getconfigs/:tank_id', [UsersController, 'getConfigs'])
+
+router.put('/updateconfig/:id_config/:config_value?/:config_day?', [
+  UsersController,
+  'updateConfig',
+])
+
+router.delete('/deleteconfig/:id_config', [UsersController, 'deleteConfig'])
+
+router.put('/disableconfig/:id_config', [UsersController, 'disableConfig'])

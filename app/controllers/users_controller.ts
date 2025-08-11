@@ -77,11 +77,12 @@ export default class UsersController {
     }
   }
 
-  async getConfigs({ response, auth }: HttpContext) {
+  async getConfigs({ params, response, auth }: HttpContext) {
     try {
       const user = await auth.authenticate()
+      const { tank_id } = params
 
-      const tankIds = await Tank.query()
+      let tankIds = await Tank.query()
         .where('user_id', user.id)
         .select('id')
         .then((rows) => rows.map((row) => row.id))
@@ -92,6 +93,16 @@ export default class UsersController {
           data: [],
           message: 'No hay peceras registradas para este usuario',
         })
+      }
+
+      if (tank_id) {
+        if (!tankIds.includes(Number(tank_id))) {
+          return response.status(404).json({
+            success: false,
+            message: 'La pecera indicada no pertenece a este usuario',
+          })
+        }
+        tankIds = [Number(tank_id)]
       }
 
       const configs = await UserConfig.query()
@@ -120,12 +131,10 @@ export default class UsersController {
     }
   }
 
-  async updateConfig({ request, response, auth }: HttpContext) {
+  async updateConfig({ params, response, auth }: HttpContext) {
     try {
       const user = await auth.authenticate()
-      const configId = request.input('id_config')
-      const newValue = request.input('config_value')
-      const newDay = request.input('config_day')
+      const { id_config, config_value, config_day } = params
 
       const tankIds = await Tank.query()
         .where('user_id', user.id)
@@ -140,7 +149,7 @@ export default class UsersController {
       }
 
       const config = await UserConfig.query()
-        .where('id', configId)
+        .where('id', id_config)
         .whereIn('tank_id', tankIds)
         .first()
 
@@ -151,8 +160,8 @@ export default class UsersController {
         })
       }
 
-      if (newValue !== undefined) config.config_value = newValue
-      if (newDay !== undefined) config.config_day = newDay
+      if (config_value !== undefined) config.config_value = config_value
+      if (config_day !== undefined) config.config_day = config_day
 
       await config.save()
 
@@ -170,10 +179,10 @@ export default class UsersController {
     }
   }
 
-  async deleteConfig({ request, response, auth }: HttpContext) {
+  async deleteConfig({ params, response, auth }: HttpContext) {
     try {
       const user = await auth.authenticate()
-      const configId = request.input('id_config')
+      const { id_config } = params
 
       const tankIds = await Tank.query()
         .where('user_id', user.id)
@@ -188,7 +197,7 @@ export default class UsersController {
       }
 
       const config = await UserConfig.query()
-        .where('id', configId)
+        .where('id', id_config)
         .whereIn('tank_id', tankIds)
         .first()
 
@@ -209,6 +218,52 @@ export default class UsersController {
       return response.status(500).json({
         success: false,
         message: 'Error al eliminar la configuración',
+        error: error.message,
+      })
+    }
+  }
+
+  async disableConfig({ params, response, auth }: HttpContext) {
+    try {
+      const user = await auth.authenticate()
+      const { id_config } = params
+
+      const tankIds = await Tank.query()
+        .where('user_id', user.id)
+        .select('id')
+        .then((rows) => rows.map((row) => row.id))
+
+      if (tankIds.length === 0) {
+        return response.status(404).json({
+          success: false,
+          message: 'No se encontraron peceras para este usuario',
+        })
+      }
+
+      const config = await UserConfig.query()
+        .where('id', id_config)
+        .whereIn('tank_id', tankIds)
+        .first()
+
+      if (!config) {
+        return response.status(404).json({
+          success: false,
+          message: 'Configuración no encontrada o no pertenece a este usuario',
+        })
+      }
+
+      config.isActive = false
+      await config.save()
+
+      return response.ok({
+        success: true,
+        message: 'Configuración desactivada exitosamente',
+        data: config,
+      })
+    } catch (error) {
+      return response.status(500).json({
+        success: false,
+        message: 'Error al desactivar la configuración',
         error: error.message,
       })
     }
