@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
-import User from './user.js'
+import Tank from './tank.js'
 
 export default class UserConfig extends BaseModel {
   @column({ isPrimary: true })
@@ -23,10 +23,10 @@ export default class UserConfig extends BaseModel {
   declare config_value: DateTime
 
   @column()
-  declare user_id: number
+  declare tank_id: number
 
-  @belongsTo(() => User)
-  declare user: BelongsTo<typeof User>
+  @belongsTo(() => Tank)
+  declare tank: BelongsTo<typeof Tank>
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime

@@ -5,6 +5,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import SensorType from '#models/sensor_type'
 import Device from '#models/device'
 import SensorData from '#models/sensor_data'
+import { DateTime } from 'luxon'
 
 export default class TanksController {
   async create({ request, response, auth }: HttpContext) {
@@ -73,7 +74,6 @@ export default class TanksController {
     }
   }
 
-
   // devuelve la pecera los dispositivos con los datos de los últimos sensores
   async show({ response, auth, params }: HttpContext) {
     try {
@@ -82,7 +82,7 @@ export default class TanksController {
       const tanks = await Tank.query()
         .where('id', params.id)
         .andWhere('user_id', user.id)
-        .preload('devices', (query)=> {
+        .preload('devices', (query) => {
           query.preload('sensorType')
         })
         .first()
@@ -98,15 +98,14 @@ export default class TanksController {
       const devicesWithData = []
 
       for (const device of tankJson.devices) {
-
-        const ultimoDato = await SensorData.findOne({ device_id: device.id })
+        const ultimoDato = await SensorData.findOne({ deviceId: device.id })
           .sort({ date: -1 })
           .lean()
 
-          devicesWithData.push({
-            ...device,
-            ultimoDato: ultimoDato || null,
-          })
+        devicesWithData.push({
+          ...device,
+          ultimoDato: ultimoDato || null,
+        })
       }
 
       return response.json({
@@ -114,7 +113,7 @@ export default class TanksController {
         data: {
           ...tankJson,
           devices: devicesWithData,
-        }
+        },
       })
     } catch (error) {
       return response.status(500).json({
@@ -125,6 +124,98 @@ export default class TanksController {
     }
   }
 
+  async stadistics({ response, auth, params }: HttpContext) {
+    try {
+      const user = await auth.authenticate()
+
+      const tanks = await Tank.query()
+        .where('id', params.id)
+        .andWhere('user_id', user.id)
+        .preload('devices', (query) => {
+          query.preload('sensorType')
+        })
+        .first()
+
+      if (!tanks) {
+        return response.status(404).json({
+          success: false,
+          message: 'No se encontraron tanques',
+        })
+      }
+
+      const tankJson = tanks.toJSON()
+      const devicesWithData = []
+
+      for (const device of tankJson.devices) {
+        const now = DateTime.now().setZone('America/Mexico_City')
+        const endOfDayString = now.endOf('day').toUTC().toISO()
+        const startOfWeekString = now.startOf('week').toUTC().toISO()
+
+        // Datos ejemplo para debugging
+        const sampleDates = await SensorData.find({ deviceId: device.id })
+          .limit(5)
+          .select('date -_id')
+        console.log(
+          'Primeras fechas de device:',
+          sampleDates.map((d) => d.date)
+        )
+        console.log('Rango de búsqueda - Inicio semana:', startOfWeekString, 'Fin día:', endOfDayString)
+
+        const ultimoDato = await SensorData.findOne({ deviceId: device.id })
+          .sort({ date: -1 })
+          .lean()
+
+        // Datos agrupados por día dentro de la semana actual
+        // POR DÍA (máx, mín, prom)
+        const datosPorDia = await SensorData.aggregate([
+          {
+            $match: {
+              deviceId: device.id,
+              date: { $gte: startOfWeekString, $lte: endOfDayString },
+            },
+          },
+          {
+            $addFields: {
+              dateConverted: { $dateFromString: { dateString: '$date' } }
+            }
+          },
+          {
+            $group: {
+              _id: {
+                $dateToString: { format: '%Y-%m-%d', date: '$dateConverted' },
+              },
+              maximo: { $max: '$value' },
+              minimo: { $min: '$value' },
+              promedio: { $avg: '$value' },
+              cantidad: { $sum: 1 },
+            },
+          },
+          { $sort: { _id: 1 } },
+        ])
+
+        devicesWithData.push({
+          ...device,
+          ultimoDato: ultimoDato || null,
+          promedioDia: datosPorDia,
+        })
+      }
+
+      return response.json({
+        success: true,
+        data: {
+          ...tankJson,
+          devices: devicesWithData,
+        },
+      })
+    } catch (error) {
+      console.error('Error en estadísticas:', error)
+      return response.status(500).json({
+        success: false,
+        message: 'Error al obtener los datos de los dispositivos',
+        error: error.message,
+      })
+    }
+  }
 
   async update({ params, request, response, auth }: HttpContext) {
     try {
@@ -176,7 +267,6 @@ export default class TanksController {
       await UserConfig.create({
         config_name,
         config_value,
-        user_id: user.id,
       })
 
       return response.json({
