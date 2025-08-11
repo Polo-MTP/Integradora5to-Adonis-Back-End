@@ -74,10 +74,7 @@ router.get('/getconfigs', [UsersController, 'getConfigs'])
 
 router.get('/getconfigs/:tank_id', [UsersController, 'getConfigs'])
 
-router.put('/updateconfig/:id_config/:config_value?/:config_day?', [
-  UsersController,
-  'updateConfig',
-])
+router.put('/updateconfig/:id_config', [UsersController, 'updateConfig'])
 
 router.delete('/deleteconfig/:id_config', [UsersController, 'deleteConfig'])
 

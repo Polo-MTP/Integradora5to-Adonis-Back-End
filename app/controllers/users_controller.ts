@@ -131,10 +131,12 @@ export default class UsersController {
     }
   }
 
-  async updateConfig({ params, response, auth }: HttpContext) {
+  async updateConfig({ params, response, auth, request }: HttpContext) {
     try {
       const user = await auth.authenticate()
-      const { id_config, config_value, config_day } = params
+      const { id_config } = params
+      const config_value = request.input('config_value')
+      const config_day = request.input('config_day')
 
       const tankIds = await Tank.query()
         .where('user_id', user.id)
