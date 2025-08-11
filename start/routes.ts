@@ -5,6 +5,7 @@ const TanksController = () => import('../app/controllers/tanks_controller.js')
 const RaspberriesController = () => import('../app/controllers/raspberries_controller.js')
 const AdminController = () => import('../app/controllers/admin_controller.js')
 const mqttsController = () => import('../app/controllers/mqtts_controller.js')
+const UsersController = () => import('../app/controllers/users_controller.js')
 
 import router from '@adonisjs/core/services/router'
 
