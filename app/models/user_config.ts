@@ -20,6 +20,12 @@ export default class UserConfig extends BaseModel {
   declare code: string
 
   @column()
+  declare config_day: number
+
+  @column({ columnName: 'isActive' })
+  declare isActive: boolean
+
+  @column()
   declare config_value: DateTime
 
   @column()

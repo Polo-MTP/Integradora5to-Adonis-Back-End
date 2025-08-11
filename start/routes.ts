@@ -84,4 +84,15 @@ router.group(() => {
 }).use(middleware.auth()).prefix('/raspberry')
 
 
-router.post('/getconfig', [RaspberriesController, 'indexConfig']) //
+router.post('/getconfig', [RaspberriesController, 'indexConfig'])
+router.post('/addconfig', [UsersController, 'addConfig'])
+
+router.get('/getconfigs', [UsersController, 'getConfigs'])
+
+router.get('/getconfigs/:tank_id', [UsersController, 'getConfigs'])
+
+router.put('/updateconfig/:id_config', [UsersController, 'updateConfig'])
+
+router.delete('/deleteconfig/:id_config', [UsersController, 'deleteConfig'])
+
+router.put('/disableconfig/:id_config', [UsersController, 'disableConfig'])
