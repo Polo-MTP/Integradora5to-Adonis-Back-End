@@ -20,13 +20,13 @@ export default class UserConfig extends BaseModel {
   declare code: string
 
   @column()
-  declare config_day: number
+  declare config_day: string | null
 
   @column({ columnName: 'isActive' })
   declare isActive: boolean
 
   @column()
-  declare config_value: DateTime
+  declare config_value: string | null
 
   @column()
   declare tank_id: number

@@ -2,47 +2,21 @@ import type { HttpContext } from '@adonisjs/core/http'
 import User from '#models/user'
 import UserConfig from '#models/user_config'
 import Tank from '#models/tank'
+import { addConfigValidator } from '#validators/config'
+import { updateConfigValidator } from '#validators/config'
 
 export default class UsersController {
-  async showInfo({ response, auth }: HttpContext) {
+  async addConfig({ request, response, auth, params }: HttpContext) {
     try {
       const user = await auth.authenticate()
-      const userInfo = await User.query().where('id', user.id).first()
+      const payload = await request.validateUsing(addConfigValidator)
 
-      if (!userInfo) {
-        return response.status(404).json({
-          success: false,
-          message: 'Usuario no encontrado',
-        })
-      }
-
-      return response.ok({
-        success: true,
-        data: userInfo,
-      })
-    } catch (error) {
-      return response.status(500).json({
-        success: false,
-        message: 'Error al obtener la información del usuario',
-        error: error.message,
-      })
-    }
-  }
-
-  async addConfig({ request, response, auth }: HttpContext) {
-    try {
-      const tank_id = request.input('tank_id')
-
-      if (!tank_id) {
-        return response.status(400).json({
-          success: false,
-          message: 'ID del tanque es requerido',
-        })
-      }
-
-      const user = await auth.authenticate()
-
-      const tank = await Tank.query().where('id', tank_id).where('user_id', user.id).first()
+      const tankId = params.id
+      
+      const tank = await Tank.query()
+        .where('id', tankId)
+        .where('user_id', user.id)
+        .first()
 
       if (!tank) {
         return response.status(404).json({
@@ -51,28 +25,28 @@ export default class UsersController {
         })
       }
 
-      const config_type = request.input('config_type')
-      const config_value = request.input('config_value')
-      const config_day = request.input('config_day')
-      const code = request.input('code')
-
       await UserConfig.create({
-        config_type,
-        config_value,
-        config_day,
-        code,
-        tank_id,
+        config_type: payload.config_type,
+        config_value: payload.config_value,
+        config_day: payload.config_day || null,
+        code: payload.code,
+        tank_id: tank.id,
       })
 
       return response.ok({
         success: true,
         message: 'Configuración registrada exitosamente',
+        data: {
+          code: payload.code,
+          hora: payload.config_value,
+          day: payload.config_day ,
+        }
       })
     } catch (error) {
       return response.status(400).json({
         success: false,
         message: 'Error al registrar la configuración',
-        error: error.message,
+        error: error.messages || error.message,
       })
     }
   }
@@ -80,33 +54,19 @@ export default class UsersController {
   async getConfigs({ params, response, auth }: HttpContext) {
     try {
       const user = await auth.authenticate()
-      const { tank_id } = params
+      const tankId = params.id
 
-      let tankIds = await Tank.query()
-        .where('user_id', user.id)
-        .select('id')
-        .then((rows) => rows.map((row) => row.id))
+      const tank = await Tank.query().where('id', tankId).where('user_id', user.id).first()
 
-      if (tankIds.length === 0) {
-        return response.ok({
-          success: true,
-          data: [],
-          message: 'No hay peceras registradas para este usuario',
+      if (!tank) {
+        return response.status(404).json({
+          success: false,
+          message: 'Tanque no encontrado o no pertenece a este usuario',
         })
       }
 
-      if (tank_id) {
-        if (!tankIds.includes(Number(tank_id))) {
-          return response.status(404).json({
-            success: false,
-            message: 'La pecera indicada no pertenece a este usuario',
-          })
-        }
-        tankIds = [Number(tank_id)]
-      }
-
       const configs = await UserConfig.query()
-        .whereIn('tank_id', tankIds)
+        .where('tank_id', tank.id)
         .select([
           'id',
           'config_type',
@@ -131,39 +91,25 @@ export default class UsersController {
     }
   }
 
-  async updateConfig({ params, response, auth, request }: HttpContext) {
+  async updateConfig({ params, response, request }: HttpContext) {
     try {
-      const user = await auth.authenticate()
-      const { id_config } = params
-      const config_value = request.input('config_value')
-      const config_day = request.input('config_day')
-
-      const tankIds = await Tank.query()
-        .where('user_id', user.id)
-        .select('id')
-        .then((rows) => rows.map((row) => row.id))
-
-      if (tankIds.length === 0) {
-        return response.status(404).json({
-          success: false,
-          message: 'No se encontraron peceras para este usuario',
-        })
-      }
+      const configId = params.id_config
+      
+      const payload = await request.validateUsing(updateConfigValidator)
 
       const config = await UserConfig.query()
-        .where('id', id_config)
-        .whereIn('tank_id', tankIds)
+        .where('id', configId)
         .first()
 
       if (!config) {
         return response.status(404).json({
           success: false,
-          message: 'Configuración no encontrada o no pertenece a este usuario',
+          message: 'Configuración no encontrada',
         })
       }
 
-      if (config_value !== undefined) config.config_value = config_value
-      if (config_day !== undefined) config.config_day = config_day
+      if(payload.config_value !== undefined) config.config_value = payload.config_value
+      if(payload.config_day !== undefined) config.config_day = payload.config_day
 
       await config.save()
 
@@ -176,7 +122,7 @@ export default class UsersController {
       return response.status(500).json({
         success: false,
         message: 'Error al actualizar la configuración',
-        error: error.message,
+        error: error.messages || error.message,
       })
     }
   }
@@ -266,6 +212,31 @@ export default class UsersController {
       return response.status(500).json({
         success: false,
         message: 'Error al desactivar la configuración',
+        error: error.message,
+      })
+    }
+  }
+
+  async showInfo({ response, auth }: HttpContext) {
+    try {
+      const user = await auth.authenticate()
+      const userInfo = await User.query().where('id', user.id).first()
+
+      if (!userInfo) {
+        return response.status(404).json({
+          success: false,
+          message: 'Usuario no encontrado',
+        })
+      }
+
+      return response.ok({
+        success: true,
+        data: userInfo,
+      })
+    } catch (error) {
+      return response.status(500).json({
+        success: false,
+        message: 'Error al obtener la información del usuario',
         error: error.message,
       })
     }

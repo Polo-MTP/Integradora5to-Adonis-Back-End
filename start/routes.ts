@@ -54,12 +54,6 @@ router.group(() => {
 }).use(middleware.auth())
 
 
-
-router.group(()=> {
-  router.post('/addconfig/:id', [mqttsController, 'addConfig'])
-}).use(middleware.auth())
-
-
 //rutas para mqtt
 router.group(()=> {
   router.post('/feed/:id', [mqttsController, 'ServirComida'])
@@ -68,9 +62,19 @@ router.group(()=> {
 }).use(middleware.auth()).prefix('/mqtt')
 
 
+// rutas para las configuraciones de el usuario
 router.group(() => {
-  router.get('me', [authController, 'checkClient'])
-}).use(middleware.auth()).prefix('/client')
+  router.get('/config/:id', [UsersController, 'getConfigs'])
+  router.post('/config/:id', [UsersController, 'addConfig'])
+  router.put('/config/:id_config', [UsersController, 'updateConfig'])
+}).use(middleware.auth())
+
+
+router.delete('/deleteconfig/:id_config', [UsersController, 'deleteConfig'])
+
+router.put('/disableconfig/:id_config', [UsersController, 'disableConfig'])
+
+
 
 
 
@@ -83,17 +87,8 @@ router.group(() => {
   router.get('/last-by-sensor', [RaspberriesController, 'lastBySensor'])
   
 }).use(middleware.auth()).prefix('/raspberry')
-
-
 router.post('/getconfig', [RaspberriesController, 'indexConfig'])
-router.post('/addconfig', [UsersController, 'addConfig'])
 
-router.get('/getconfigs', [UsersController, 'getConfigs'])
-
-router.get('/getconfigs/:tank_id', [UsersController, 'getConfigs'])
-
-router.put('/updateconfig/:id_config', [UsersController, 'updateConfig'])
-
-router.delete('/deleteconfig/:id_config', [UsersController, 'deleteConfig'])
-
-router.put('/disableconfig/:id_config', [UsersController, 'disableConfig'])
+router.group(() => {
+  router.get('me', [authController, 'checkClient'])
+}).use(middleware.auth()).prefix('/client')
