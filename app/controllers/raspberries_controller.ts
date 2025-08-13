@@ -71,9 +71,12 @@ export default class RaspberriesController {
       const configs = configuraciones.map((config) => ({
         code: config.code,
         config_type: config.config_type,
-        config_day: config.getConfigDay(config.config_day), // 👈 Aplica el formato
+        config_day: config.config_day
+          ? config.config_day.toFormat('yyyy-MM-dd') // ✅ Directo con Luxon
+          : null,
         config_value: config.config_value,
       }))
+
       return response.json(configs)
     } catch (error) {
       console.error('❌ Error al obtener configuraciones:', error)

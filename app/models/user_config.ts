@@ -19,8 +19,8 @@ export default class UserConfig extends BaseModel {
   @column()
   declare code: string
 
-  @column()
-  declare config_day: Date | null
+  @column.date()
+  declare config_day: DateTime | null
 
   @column({ columnName: 'isActive' })
   declare isActive: boolean

@@ -87,6 +87,7 @@ router.group(() => {
   router.get('/last-by-sensor', [RaspberriesController, 'lastBySensor'])
   
 }).use(middleware.auth()).prefix('/raspberry')
+
 router.post('/getconfig', [RaspberriesController, 'indexConfig'])
 
 router.group(() => {
