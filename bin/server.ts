@@ -22,7 +22,7 @@ new Ignitor(APP_ROOT, { importer: IMPORTER })
   })
   .httpServer()
   .start()
-  .then((httpServer) => {})
+  .then(() => {})
   .catch((error) => {
     process.exitCode = 1
     prettyPrintError(error)
