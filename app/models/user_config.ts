@@ -20,7 +20,7 @@ export default class UserConfig extends BaseModel {
   declare code: string
 
   @column()
-  declare config_day: string | null
+  declare config_day: Date | null
 
   @column({ columnName: 'isActive' })
   declare isActive: boolean
@@ -36,4 +36,8 @@ export default class UserConfig extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
+
+  getConfigDay(value: Date | null) {
+    return value ? DateTime.fromJSDate(value).toFormat('yyyy-MM-dd') : null
+  }
 }
