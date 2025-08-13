@@ -127,17 +127,15 @@ export default class UsersController {
     }
   }
 
-  async deleteConfig({ params, response, auth }: HttpContext) {
+  async deleteConfig({ params, response, auth}: HttpContext) {
     try {
       const user = await auth.authenticate()
-      const { id_config } = params
 
-      const tankIds = await Tank.query()
-        .where('user_id', user.id)
-        .select('id')
-        .then((rows) => rows.map((row) => row.id))
+      const tankIds = await Tank.query().where('user_id', user.id).select('id').then((rows) => rows.map((row) => row.id))
+      
+      const configId = params.id_config
 
-      if (tankIds.length === 0) {
+      if(tankIds.length === 0) {
         return response.status(404).json({
           success: false,
           message: 'No se encontraron peceras para este usuario',
@@ -145,9 +143,17 @@ export default class UsersController {
       }
 
       const config = await UserConfig.query()
-        .where('id', id_config)
-        .whereIn('tank_id', tankIds)
-        .first()
+      .where('id', configId)
+      .whereIn('tank_id', tankIds)
+      .first()
+
+      if(!config) {
+        return response.status(404).json({
+          success: false,
+          message: 'Configuración no encontrada',
+        })
+      }
+
 
       if (!config) {
         return response.status(404).json({
@@ -166,6 +172,61 @@ export default class UsersController {
       return response.status(500).json({
         success: false,
         message: 'Error al eliminar la configuración',
+        error: error.message,
+      })
+    }
+  }
+
+  async toggleConfig({ params, response, auth, request }: HttpContext) {
+    try {
+
+      const estado = request.input('isActive') 
+
+      const user = await auth.authenticate()
+
+
+      const ConfigId = params.id_config
+      const tankIds = await Tank.query().where('user_id', user.id).select('id').then((rows) => rows.map((row) => row.id))
+
+
+      if(estado === undefined) {
+        return response.status(404).json({
+          success: false,
+          message: 'Estado no encontrado',
+        })
+      }
+      
+      if(tankIds.length === 0) {
+        return response.status(404).json({
+          success: false,
+          message: 'No se encontraron peceras para este usuario',
+        })
+      }
+
+      const config = await UserConfig.query()
+      .where('id', ConfigId)
+      .whereIn('tank_id', tankIds)
+      .first()
+
+      if(!config) {
+        return response.status(404).json({
+          success: false,
+          message: 'Configuración no encontrada',
+        })
+      }
+
+      config.isActive = estado
+      await config.save()
+
+      return response.ok({
+        success: true,
+        message: 'Configuración actualizada exitosamente',
+        data: config,
+      })
+    } catch (error) {
+      return response.status(500).json({
+        success: false,
+        message: 'Error al actualizar la configuración',
         error: error.message,
       })
     }

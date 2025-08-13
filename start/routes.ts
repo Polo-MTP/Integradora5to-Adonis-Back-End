@@ -67,10 +67,10 @@ router.group(() => {
   router.get('/config/:id', [UsersController, 'getConfigs'])
   router.post('/config/:id', [UsersController, 'addConfig'])
   router.put('/config/:id_config', [UsersController, 'updateConfig'])
+  router.delete('/config/:id_config', [UsersController, 'deleteConfig'])
+  router.put('/config/:id_config/toggle', [UsersController, 'toggleConfig'])
 }).use(middleware.auth())
 
-
-router.delete('/deleteconfig/:id_config', [UsersController, 'deleteConfig'])
 
 router.put('/disableconfig/:id_config', [UsersController, 'disableConfig'])
 
