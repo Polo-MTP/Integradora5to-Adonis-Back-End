@@ -17,7 +17,7 @@ export default class UsersController {
       if (!tank) {
         return response.status(404).json({
           success: false,
-          message: 'Tanque no encontrado o no pertenece a este usuario',
+          message: 'Tanque no encontrad o no pertenece a este usuario',
         })
       }
 
