@@ -12,10 +12,7 @@ export default class UsersController {
       const payload = await request.validateUsing(addConfigValidator)
       const tankId = params.id
 
-      const tank = await Tank.query()
-        .where('id', tankId)
-        .where('user_id', user.id)
-        .first()
+      const tank = await Tank.query().where('id', tankId).where('user_id', user.id).first()
 
       if (!tank) {
         return response.status(404).json({
@@ -27,7 +24,10 @@ export default class UsersController {
       await UserConfig.create({
         config_type: payload.config_type,
         config_value: payload.config_value,
-        config_day: payload.config_day ? DateTime.fromJSDate(new Date(payload.config_day)) : null,
+        config_day: payload.config_day
+          ? DateTime.fromISO(payload.config_day, { zone: 'America/Mexico_City' })
+          : null,
+
         code: payload.code,
         tank_id: tank.id,
       })
@@ -55,10 +55,7 @@ export default class UsersController {
       const user = await auth.authenticate()
       const tankId = params.id
 
-      const tank = await Tank.query()
-        .where('id', tankId)
-        .where('user_id', user.id)
-        .first()
+      const tank = await Tank.query().where('id', tankId).where('user_id', user.id).first()
 
       if (!tank) {
         return response.status(404).json({
@@ -67,14 +64,21 @@ export default class UsersController {
         })
       }
 
+      const today = new Date()
+
+      today.setHours(0, 0, 0, 0) 
+
+
       const configs = await UserConfig.query()
         .where('tank_id', tank.id)
+        .where('config_day', '>=', today)
         .select([
           'id',
           'config_type',
           'config_day',
           'config_value',
           'code',
+          'isActive',
           'created_at',
           'updated_at',
           'tank_id',
@@ -107,7 +111,9 @@ export default class UsersController {
       }
 
       if (payload.config_value !== undefined) config.config_value = payload.config_value
-      if (payload.config_day !== undefined) config.config_day = DateTime.fromJSDate(new Date(payload.config_day))
+      if (payload.config_day !== undefined) {
+        config.config_day = DateTime.fromISO(payload.config_day, { zone: 'America/Mexico_City' })
+      }
 
       await config.save()
 

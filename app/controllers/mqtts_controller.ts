@@ -19,7 +19,7 @@ export default class MqttsController {
       }
 
       const topic = `conf/uuid/code`
-      const mensaje = 'on'
+      const mensaje = 'food'
 
       MqttService.publish(topic, mensaje)
 
