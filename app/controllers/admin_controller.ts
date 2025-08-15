@@ -4,6 +4,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import SensorType from '#models/sensor_type'
 import Tank from '#models/tank'
 import Device from '#models/device'
+import db from '@adonisjs/lucid/services/db'
 
 export default class AdminController {
   async indexUsers({ response, request }: HttpContext) {
@@ -41,6 +42,39 @@ export default class AdminController {
       })
     } catch (error) {
       return response.status(500).json({ message: 'Error interno', error: error.message })
+    }
+  }
+
+  async dashboard({ response }: HttpContext) {
+    try {
+      const currentYear = new Date().getFullYear()
+
+      const result = await db.rawQuery(`
+      WITH months AS (
+        SELECT 1 as month UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 
+        UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 
+        UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12
+      )
+      SELECT 
+        ${currentYear} as year,
+        m.month,
+        COALESCE(COUNT(t.id), 0) AS count
+      FROM months m
+      LEFT JOIN tanks t ON YEAR(t.created_at) = ${currentYear} AND MONTH(t.created_at) = m.month
+      GROUP BY m.month
+      ORDER BY m.month ASC
+    `)
+
+      const data = Array.isArray(result) ? result[0] : result
+      return response.json({
+        message: 'Dashboard cargado exitosamente',
+        data: data,
+      })
+    } catch (error) {
+      return response.status(500).json({
+        message: 'Error al obtener el dashboard',
+        error: error.message,
+      })
     }
   }
 
@@ -84,6 +118,32 @@ export default class AdminController {
       return response.status(400).json({
         success: false,
         message: 'Error al actualizar el sensor',
+        error: error.message,
+      })
+    }
+  }
+
+  async deleteSensor({ response, params }: HttpContext) {
+    try {
+      const sensor = await SensorType.query().where('id', params.id).first()
+
+      if (!sensor) {
+        return response.status(404).json({
+          success: false,
+          message: 'Sensor no encontrado',
+        })
+      }
+
+      await sensor.delete()
+
+      return response.json({
+        success: true,
+        message: 'Sensor eliminado exitosamente',
+      })
+    } catch (error) {
+      return response.status(400).json({
+        success: false,
+        message: 'Error al eliminar el sensor',
         error: error.message,
       })
     }
@@ -164,10 +224,7 @@ export default class AdminController {
         })
       }
 
-      const existingTank = await Tank.query()
-        .where('uuid', uuid)
-        .whereNot('id', tankId) 
-        .first()
+      const existingTank = await Tank.query().where('uuid', uuid).whereNot('id', tankId).first()
 
       if (existingTank) {
         return response.status(409).json({

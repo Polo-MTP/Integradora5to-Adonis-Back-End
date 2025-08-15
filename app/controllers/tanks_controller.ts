@@ -5,6 +5,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import SensorType from '#models/sensor_type'
 import Device from '#models/device'
 import SensorData from '#models/sensor_data'
+import Alert from '#models/alert'
 import { DateTime } from 'luxon'
 
 export default class TanksController {
@@ -53,7 +54,7 @@ export default class TanksController {
   async index({ response, auth }: HttpContext) {
     try {
       const user = await auth.authenticate()
-      const tanks = await Tank.query().where('user_id', user.id)
+      const tanks = await Tank.query().where('user_id', user.id).andWhere('is_active', true)
 
       if (tanks.length === 0) {
         return response.status(404).json({
@@ -74,6 +75,51 @@ export default class TanksController {
     }
   }
 
+  async indexAll({ response, auth }: HttpContext) {
+    try {
+      const user = await auth.authenticate()
+      const tanks = await Tank.query().where('user_id', user.id)
+
+      return response.json({
+        success: true,
+        data: tanks, 
+      })
+    } catch (error) {
+      return response.status(500).json({
+        success: false,
+        message: 'Error al obtener los tanques',
+        error: error.message,
+      })
+    }
+  }
+
+  async delete({ params, response, auth }: HttpContext) {
+    try {
+      const user = await auth.authenticate()
+      const tank = await Tank.query().where('id', params.id).where('user_id', user.id).first()
+
+      if (!tank) {
+        return response.status(404).json({
+          success: false,
+          message: 'Tanque no encontrado',
+        })
+      }
+
+      await tank.delete()
+
+      return response.json({
+        success: true,
+        message: 'Tanque eliminado exitosamente',
+      })
+    } catch (error) {
+      return response.status(500).json({
+        success: false,
+        message: 'Error al eliminar el tanque',
+        error: error.message,
+      })
+    }
+  }
+
   // devuelve la pecera los dispositivos con los datos de los últimos sensores
   async show({ response, auth, params }: HttpContext) {
     try {
@@ -82,6 +128,7 @@ export default class TanksController {
       const tanks = await Tank.query()
         .where('id', params.id)
         .andWhere('user_id', user.id)
+        .andWhere('is_active', true)
         .preload('devices', (query) => {
           query.preload('sensorType')
         })
@@ -124,6 +171,54 @@ export default class TanksController {
     }
   }
 
+  // devuelve las alertas de los dispositivos del tanque
+  async showAlerts({ response, auth, params }: HttpContext) {
+    try {
+      const user = await auth.authenticate()
+
+      const tanks = await Tank.query()
+        .where('id', params.id)
+        .andWhere('user_id', user.id)
+        .preload('devices', (query) => {
+          query.preload('sensorType')
+        })
+        .first()
+
+      if (!tanks) {
+        return response.status(404).json({
+          success: false,
+          message: 'No se encontraron tanques',
+        })
+      }
+
+      const tankJson = tanks.toJSON()
+      const devicesWithAlerts = []
+
+      for (const device of tankJson.devices) {
+        const alertas = await Alert.find({ deviceId: device.id }).sort({ date: -1 }).lean()
+
+        devicesWithAlerts.push({
+          ...device,
+          alertas: alertas || [],
+        })
+      }
+
+      return response.json({
+        success: true,
+        data: {
+          ...tankJson,
+          devices: devicesWithAlerts,
+        },
+      })
+    } catch (error) {
+      return response.status(500).json({
+        success: false,
+        message: 'Error al obtener las alertas de los dispositivos',
+        error: error.message,
+      })
+    }
+  }
+
   async stadistics({ response, auth, params }: HttpContext) {
     try {
       const user = await auth.authenticate()
@@ -159,7 +254,12 @@ export default class TanksController {
           'Primeras fechas de device:',
           sampleDates.map((d) => d.date)
         )
-        console.log('Rango de búsqueda - Inicio semana:', startOfWeekString, 'Fin día:', endOfDayString)
+        console.log(
+          'Rango de búsqueda - Inicio semana:',
+          startOfWeekString,
+          'Fin día:',
+          endOfDayString
+        )
 
         const ultimoDato = await SensorData.findOne({ deviceId: device.id })
           .sort({ date: -1 })
@@ -176,8 +276,8 @@ export default class TanksController {
           },
           {
             $addFields: {
-              dateConverted: { $dateFromString: { dateString: '$date' } }
-            }
+              dateConverted: { $dateFromString: { dateString: '$date' } },
+            },
           },
           {
             $group: {

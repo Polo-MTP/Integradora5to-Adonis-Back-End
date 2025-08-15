@@ -31,7 +31,9 @@ router.group(() => {
   router.put('/tank/aprove/:id', [AdminController, 'aproveTank']).use(middleware.onlyAdmin())
   router.get('/sensors', [AdminController, 'indexSensors']).use(middleware.onlyAdmin())
   router.put('/sensor/:id', [AdminController, 'updateSensor']).use(middleware.onlyAdmin())
+  router.delete('/sensor/:id', [AdminController, 'deleteSensor']).use(middleware.onlyAdmin())
   router.post('/sensor', [AdminController, 'createSensorType'])
+  router.get('dashboard', [AdminController, 'dashboard']).use(middleware.onlyAdmin())
 }).prefix('/admin').use(middleware.auth())
 
   
@@ -48,9 +50,12 @@ router.group(() => {
 // rutas para las peceras
 router.group(() => {
     router.get('/tanks', [TanksController, 'index'])
+    router.get('/tanks/all', [TanksController, 'indexAll'])
     router.post('/tanks', [TanksController, 'create'])
+    router.delete('/tanks/:id', [TanksController, 'delete'])
     router.get('/tanks/:id/data', [TanksController, 'show'])
     router.get('/tanks/:id/stadistics', [TanksController, 'stadistics'])
+    router.get('/tanks/:id/alerts', [TanksController, 'showAlerts'])
 }).use(middleware.auth())
 
 
