@@ -64,10 +64,7 @@ export default class UsersController {
         })
       }
 
-      const today = new Date()
-
-      today.setHours(0, 0, 0, 0) 
-
+      const today = DateTime.now().setZone('America/Mexico_City').startOf('day').toJSDate()
 
       const configs = await UserConfig.query()
         .where('tank_id', tank.id)
