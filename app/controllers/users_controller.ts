@@ -17,17 +17,22 @@ export default class UsersController {
       if (!tank) {
         return response.status(404).json({
           success: false,
-          message: 'Tanque no encontrad o no pertenece a este usuario',
+          message: 'Tanque no encontrado o no pertenece a este usuario',
         })
+      }
+
+      // Manejo de fechas sin conversión de zona horaria
+      let configDay = null
+      if (payload.config_day) {
+        // Tratamos la fecha como está, sin conversión de zona horaria
+        // para evitar que se mueva al día anterior/siguiente
+        configDay = DateTime.fromISO(payload.config_day)
       }
 
       await UserConfig.create({
         config_type: payload.config_type,
         config_value: payload.config_value,
-        config_day: payload.config_day
-          ? DateTime.fromISO(payload.config_day, { zone: 'America/Mexico_City' })
-          : null,
-
+        config_day: configDay,
         code: payload.code,
         tank_id: tank.id,
       })
@@ -64,11 +69,17 @@ export default class UsersController {
         })
       }
 
-      const today = DateTime.now().setZone('America/Mexico_City').startOf('day').toJSDate()
-
+      // Fecha de hoy en zona horaria de México, pero sin conversión de zona
+      const today = DateTime.now().setZone('America/Mexico_City').startOf('day')
+      
+      // Para la comparación en la base de datos, usamos la fecha sin zona horaria específica
       const configs = await UserConfig.query()
         .where('tank_id', tank.id)
-        .where('config_day', '>=', today)
+        .where(function(query) {
+          // Incluir configuraciones de hoy en adelante O configuraciones sin fecha específica
+          query.where('config_day', '>=', today.toJSDate())
+               .orWhereNull('config_day')
+        })
         .select([
           'id',
           'config_type',
@@ -80,6 +91,8 @@ export default class UsersController {
           'updated_at',
           'tank_id',
         ])
+        .orderBy('config_day', 'asc')
+        .orderBy('config_value', 'asc') // Ordenar también por hora si es relevante
 
       return response.ok({
         success: true,
@@ -109,7 +122,10 @@ export default class UsersController {
 
       if (payload.config_value !== undefined) config.config_value = payload.config_value
       if (payload.config_day !== undefined) {
-        config.config_day = DateTime.fromISO(payload.config_day, { zone: 'America/Mexico_City' })
+        // Mismo manejo de fechas que en addConfig
+        config.config_day = payload.config_day 
+          ? DateTime.fromISO(payload.config_day)
+          : null
       }
 
       await config.save()
