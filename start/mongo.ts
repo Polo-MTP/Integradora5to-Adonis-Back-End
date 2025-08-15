@@ -1,17 +1,17 @@
 import mongoose from 'mongoose'
 
-const user = process.env.MONGO_USER
-const pass = process.env.MONGO_PASS
-const cluster = process.env.MONGO_CLUSTER
+const mongoUriEnv = process.env.MONGO_URI
 const db = process.env.MONGO_DB
 
-const uri = `mongodb+srv://${user}:${pass}@${cluster}/${db}?retryWrites=true&w=majority`
+const uri = mongoUriEnv?.includes('?') 
+  ? mongoUriEnv.replace('?', `/${db}?`)
+  : `${mongoUriEnv}/${db}`
 
 mongoose
   .connect(uri, {
     dbName: db,
   })
-  .then(() => console.log('✅ Conectado a MongoDB Atlas'))
-  .catch((err) => console.error('❌ Error al conectar a MongoDB Atlas:', err))
+  .then(() => console.log('✅ Conectado a MongoDB Replica Set'))
+  .catch((err) => console.error('❌ Error al conectar a MongoDB Replica Set:', err))
 
-export default mongoose
+export default mongoose
