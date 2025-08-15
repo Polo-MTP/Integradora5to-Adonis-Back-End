@@ -21,11 +21,8 @@ export default class UsersController {
         })
       }
 
-      // Manejo de fechas sin conversión de zona horaria
       let configDay = null
       if (payload.config_day) {
-        // Tratamos la fecha como está, sin conversión de zona horaria
-        // para evitar que se mueva al día anterior/siguiente
         configDay = DateTime.fromISO(payload.config_day)
       }
 
@@ -69,17 +66,9 @@ export default class UsersController {
         })
       }
 
-      // Fecha de hoy en zona horaria de México, pero sin conversión de zona
-      const today = DateTime.now().setZone('America/Mexico_City').startOf('day')
       
-      // Para la comparación en la base de datos, usamos la fecha sin zona horaria específica
       const configs = await UserConfig.query()
         .where('tank_id', tank.id)
-        .where(function(query) {
-          // Incluir configuraciones de hoy en adelante O configuraciones sin fecha específica
-          query.where('config_day', '>=', today.toJSDate())
-               .orWhereNull('config_day')
-        })
         .select([
           'id',
           'config_type',
